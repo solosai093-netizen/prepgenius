@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#070c18" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>PrepGenius AI - Master Exam & Skills Platform</title>
+
+  <style>
+    :root {
+      --bg: #070c18;
+      --surface: #0f172a;
+      --surface-glass: rgba(15, 23, 42, 0.85);
+      --card: #141f36;
+      --card-hover: #1c2b4a;
+      --accent: #2563eb;
+      --accent-glow: rgba(37, 99, 235, 0.4);
+      --cyan: #38bdf8;
+      --cyan-glow: rgba(56, 189, 248, 0.25);
+      --ai-purple: #8b5cf6;
+      --ai-glow: rgba(139, 92, 246, 0.35);
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --border: #1e293b;
+      --border-light: rgba(56, 189, 248, 0.18);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #172554 0%, var(--bg) 70%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 0.75rem;
+      overflow-x: hidden;
+    }
+
+    /* 1. APP LAUNCH SPLASH SCREEN */
+    #splash-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(circle at 50% 30%, #1e1b4b 0%, #070c18 80%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .splash-logo {
+      width: 86px;
+      height: 86px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%);
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 35px var(--cyan-glow);
+      animation: pulseGlow 1.8s infinite alternate;
+    }
+
+    .splash-inner {
+      width: 100%; height: 100%;
+      background: #090e1a;
+      border-radius: 19px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes pulseGlow {
+      0% { transform: scale(0.97); box-shadow: 0 0 20px var(--cyan-glow); }
+      100% { transform: scale(1.05); box-shadow: 0 0 40px rgba(139, 92, 246, 0.6); }
+    }
+
+    .splash-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-top: 1.25rem;
+      background: linear-gradient(135deg, #38bdf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .splash-sub {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .splash-loader {
+      width: 140px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      margin-top: 2rem;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .splash-loader-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #8b5cf6);
+      border-radius: 999px;
+      animation: fillBar 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes fillBar {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    /* MAIN CONTAINER */
+    .app-shell {
+      width: 100%;
+      max-width: 820px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .app-shell.loaded { opacity: 1; }
+
+    /* Top Stats */
+    .status-bar {
+      background: var(--surface-glass);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.7rem 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(8px);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .stat-badge { display: flex; align-items: center; gap: 0.35rem; }
+    .stat-xp { color: var(--warning); }
+    .stat-streak { color: #f97316; }
+    .stat-rank { color: var(--ai-purple); }
+
+    /* Navigation Bar */
+    .nav-bar {
+      background: var(--surface-glass);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 0.8rem 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .brand-group { display: flex; align-items: center; gap: 0.75rem; }
+
+    .app-logo-wrap {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%);
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    .app-logo-inner {
+      width: 100%; height: 100%;
+      background: #090e1a;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-info h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #38bdf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-info span {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .nav-actions { display: flex; align-items: center; gap: 0.4rem; }
+
+    .btn-mock-builder {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.45rem 0.85rem;
+      border-radius: 9px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      box-shadow: 0 2px 10px var(--accent-glow);
+      transition: all 0.2s;
+    }
+
+    .btn-mock-builder:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .icon-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.92rem;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      background: var(--card-hover);
+      border-color: var(--cyan);
+      transform: translateY(-1px);
+    }
+
+    /* Filter Tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 0.45rem;
+      overflow-x: auto;
+      padding-bottom: 0.25rem;
+      scrollbar-width: none;
+    }
+
+    .filter-tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      background: var(--surface-glass);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.45rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      border-color: #3b82f6;
+      color: #ffffff;
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+
+    .count-pill {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.12rem 0.4rem;
+      border-radius: 9999px;
+      font-size: 0.68rem;
+    }
+
+    /* Progress Track */
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: var(--surface);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      transition: width 0.3s ease;
+    }
+
+    /* Quiz Card */
+    .quiz-card {
+      background: var(--surface-glass);
+      border: 1px solid var(--border-light);
+      border-radius: 18px;
+      padding: 1.6rem 1.4rem;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(14px);
+    }
+
+    .quiz-meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .meta-tools { display: flex; align-items: center; gap: 0.4rem; }
+
+    .module-pill {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--cyan);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.3rem 0.7rem;
+      border-radius: 8px;
+    }
+
+    .btn-lifeline {
+      background: rgba(139, 92, 246, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.3rem 0.65rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: all 0.2s;
+    }
+
+    .btn-lifeline:disabled {
+      opacity: 0.35;
+      cursor: default;
+      border-color: var(--border);
+    }
+
+    .btn-bookmark {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-bookmark.active {
+      color: var(--warning);
+      border-color: var(--warning);
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .timer-badge {
+      background: rgba(15, 23, 42, 0.9);
+      border: 2px solid var(--cyan);
+      color: var(--cyan);
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 0.3rem 0.8rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    .timer-badge.warning { border-color: var(--warning); color: var(--warning); }
+    .timer-badge.danger {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    .progress-info {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+
+    .question-title {
+      font-size: 1.15rem;
+      line-height: 1.6;
+      font-weight: 600;
+      margin-bottom: 1.35rem;
+      color: #ffffff;
+    }
+
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.35rem;
+    }
+
+    .option-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.95rem 1.15rem;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .option-card:hover:not(:disabled) {
+      background: var(--card-hover);
+      border-color: #3b82f6;
+      transform: translateY(-1.5px);
+    }
+
+    .option-key {
+      background: #090e1a;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .option-card.correct {
+      background: rgba(16, 185, 129, 0.18) !important;
+      border-color: var(--success) !important;
+      color: #86efac !important;
+    }
+
+    .option-card.incorrect {
+      background: rgba(239, 68, 68, 0.18) !important;
+      border-color: var(--danger) !important;
+      color: #fca5a5 !important;
+    }
+
+    .option-card.eliminated {
+      opacity: 0.22;
+      pointer-events: none;
+      text-decoration: line-through;
+    }
+
+    .option-card:disabled { cursor: default; }
+
+    /* Explanation Copilot */
+    .ai-copilot-card {
+      display: none;
+      background: rgba(20, 31, 54, 0.8);
+      border: 1px solid #3b4261;
+      border-left: 4px solid var(--ai-purple);
+      border-radius: 12px;
+      padding: 1.15rem;
+      margin-bottom: 1.35rem;
+    }
+
+    .ai-copilot-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #c084fc;
+    }
+
+    .ai-section {
+      margin-bottom: 0.5rem;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      color: #cbd5e1;
+    }
+
+    .ai-section strong {
+      color: var(--cyan);
+      display: inline-block;
+      min-width: 120px;
+    }
+
+    /* AI Doubt Box */
+    .ai-doubt-section {
+      margin-top: 0.85rem;
+      padding-top: 0.85rem;
+      border-top: 1px dashed var(--border);
+    }
+
+    .ai-doubt-input-group {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .ai-doubt-input {
+      flex: 1;
+      background: #090e1a;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 0.55rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+    }
+
+    .ai-doubt-btn {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: #fff;
+      border: none;
+      padding: 0.55rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .ai-doubt-answer {
+      display: none;
+      margin-top: 0.6rem;
+      background: #090e1a;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      border: none;
+      padding: 0.95rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    /* Results Screen */
+    .result-screen {
+      display: none;
+      text-align: center;
+    }
+
+    .score-circle {
+      font-size: 3.2rem;
+      font-weight: 900;
+      color: var(--cyan);
+      margin: 1rem 0;
+      text-shadow: 0 0 20px var(--cyan-glow);
+    }
+
+    .stats-breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .breakdown-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem;
+      text-align: center;
+    }
+
+    .breakdown-card div:first-child { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.25rem; }
+    .breakdown-card div:last-child { font-size: 1.1rem; font-weight: 800; color: #fff; }
+
+    /* Modals */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      justify-content: center;
+      align-items: center;
+      padding: 1.25rem;
+      z-index: 1000;
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 580px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Custom Mock Builder Form */
+    .form-group {
+      margin-bottom: 1.2rem;
+      text-align: left;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-bottom: 0.5rem;
+    }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+
+    .custom-check-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .custom-check-card input {
+      accent-color: var(--accent);
+      width: 16px;
+      height: 16px;
+    }
+
+    .select-input {
+      width: 100%;
+      background: #090e1a;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+    }
+
+    .deck-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.95rem;
+      margin-bottom: 0.75rem;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. SPLASH SCREEN -->
+  <div id="splash-screen">
+    <div class="splash-logo">
+      <div class="splash-inner">
+        <svg width="42" height="42" viewBox="0 0 32 32" fill="none">
+          <defs>
+            <linearGradient id="splashGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+          <path d="M16 2L4 7.5V15C4 22.5 9.2 28.5 16 30C22.8 28.5 28 22.5 28 15V7.5L16 2Z" fill="#0b1120" stroke="url(#splashGrad)" stroke-width="2"/>
+          <path d="M17 6L9 16H15.5L14 24L23 13.5H16.5L17 6Z" fill="#38bdf8"/>
+          <circle cx="8" cy="11" r="1.5" fill="#c084fc"/>
+          <circle cx="24" cy="11" r="1.5" fill="#c084fc"/>
+        </svg>
+      </div>
+    </div>
+    <div class="splash-title">PrepGenius AI</div>
+    <div class="splash-sub">Exam & Skills Intelligence</div>
+    <div class="splash-loader">
+      <div class="splash-loader-bar"></div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="app-shell" id="app-shell">
+    
+    <!-- Top Gamification Stats -->
+    <div class="status-bar">
+      <div class="stat-badge stat-xp">
+        <span>⚡ XP:</span>
+        <span id="user-xp">0</span>
+      </div>
+      <div class="stat-badge stat-streak">
+        <span>🔥 Streak:</span>
+        <span id="user-streak">1 Day</span>
+      </div>
+      <div class="stat-badge stat-rank">
+        <span>🎖️ Rank:</span>
+        <span id="user-rank">Novice Cadet</span>
+      </div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="nav-bar">
+      <div class="brand-group">
+        <div class="app-logo-wrap">
+          <div class="app-logo-inner">
+            <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+              <defs>
+                <linearGradient id="shieldGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#38bdf8"/>
+                  <stop offset="100%" stop-color="#8b5cf6"/>
+                </linearGradient>
+              </defs>
+              <path d="M16 2L4 7.5V15C4 22.5 9.2 28.5 16 30C22.8 28.5 28 22.5 28 15V7.5L16 2Z" fill="#0b1120" stroke="url(#shieldGrad)" stroke-width="2"/>
+              <path d="M17 6L9 16H15.5L14 24L23 13.5H16.5L17 6Z" fill="#38bdf8"/>
+              <circle cx="8" cy="11" r="1.5" fill="#c084fc"/>
+              <circle cx="24" cy="11" r="1.5" fill="#c084fc"/>
+            </svg>
+          </div>
+        </div>
+        
+        <div class="brand-info">
+          <h1>PrepGenius AI</h1>
+          <span>Exam & Skills Hub</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-mock-builder" onclick="openMockBuilderModal()" title="Create customized test">
+          <span>🛠️</span> Build Test
+        </button>
+        <button class="icon-btn" id="sound-btn" onclick="toggleSound()" title="Sound On/Off">🔊</button>
+        <button class="icon-btn" onclick="openBookmarksModal()" title="Starred Questions">⭐</button>
+        <button class="icon-btn" onclick="openMistakesModal()" title="Mistakes Notebook">📖</button>
+      </div>
+    </header>
+
+    <!-- Filters -->
+    <nav class="filter-tabs" id="standard-tabs">
+      <button class="tab-btn active" onclick="switchCategory('ALL')">
+        All Questions <span class="count-pill" id="count-all">160</span>
+      </button>
+      <button class="tab-btn" onclick="switchCategory('COMPETITIVE')">
+        Polity, GK & SSC <span class="count-pill" id="count-comp">40</span>
+      </button>
+      <button class="tab-btn" onclick="switchCategory('CYBER_SEC')">
+        Cybersecurity <span class="count-pill" id="count-cyber">40</span>
+      </button>
+      <button class="tab-btn" onclick="switchCategory('AI_TECH')">
+        Generative AI <span class="count-pill" id="count-ai">40</span>
+      </button>
+      <button class="tab-btn" onclick="switchCategory('WEB_DEV')">
+        Web Development <span class="count-pill" id="count-web">40</span>
+      </button>
+    </nav>
+
+    <!-- Progress Track -->
+    <div class="progress-track">
+      <div class="progress-fill" id="session-progress"></div>
+    </div>
+
+    <!-- Active Question Card -->
+    <main class="quiz-card" id="quiz-box">
+      <div class="quiz-meta-bar">
+        <div class="meta-tools">
+          <span class="module-pill" id="module-pill">Module</span>
+          <button class="btn-lifeline" id="lifeline-5050" onclick="use5050Lifeline()" title="Eliminate 2 wrong answers">
+            <span>✂️</span> 50:50
+          </button>
+          <button class="btn-bookmark" id="btn-star" onclick="toggleBookmarkCurrent()" title="Star this question">
+            ★
+          </button>
+        </div>
+        <div class="timer-badge" id="timer-badge">
+          <span>⏱</span>
+          <span id="timer-number">20s</span>
+        </div>
+      </div>
+
+      <div class="progress-info" id="progress-info">Question 1 of 160</div>
+      <h2 class="question-title" id="question-title">Loading question...</h2>
+
+      <div class="options-grid" id="options-grid"></div>
+
+      <!-- Astra AI Tutor Copilot Panel -->
+      <section class="ai-copilot-card" id="ai-copilot">
+        <div class="ai-copilot-header">
+          <span>✨ Astra AI Solution Breakdown</span>
+        </div>
+        <div class="ai-section">
+          <strong>Key Solution:</strong> <span id="ai-analysis"></span>
+        </div>
+        <div class="ai-section">
+          <strong>Retention Trick:</strong> <span id="ai-mnemonic"></span>
+        </div>
+
+        <!-- AI Doubt Box -->
+        <div class="ai-doubt-section">
+          <div class="ai-doubt-input-group">
+            <input type="text" class="ai-doubt-input" id="doubt-query" placeholder="Ask Astra AI: 'Explain simply' or 'Why not option A?'..." />
+            <button class="ai-doubt-btn" onclick="askAstraAIDoubt()">Ask AI</button>
+          </div>
+          <div class="ai-doubt-answer" id="doubt-response"></div>
+        </div>
+      </section>
+
+      <button id="next-btn" class="btn-primary" style="display:none;" onclick="nextQuestion()">Next Question</button>
+    </main>
+
+    <!-- Results Screen with Performance Analytics -->
+    <section class="quiz-card result-screen" id="result-box">
+      <h2>Session Completed!</h2>
+      <div class="score-circle" id="final-score">0 / 0</div>
+
+      <div class="stats-breakdown-grid">
+        <div class="breakdown-card">
+          <div>Accuracy Rate</div>
+          <div id="stat-accuracy">0%</div>
+        </div>
+        <div class="breakdown-card">
+          <div>Avg Answer Speed</div>
+          <div id="stat-speed">0s</div>
+        </div>
+      </div>
+
+      <p id="feedback-headline" style="color:var(--muted); margin-bottom:1.25rem;"></p>
+      
+      <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
+        <button class="btn-primary" style="width: auto; padding: 0.75rem 1.5rem;" onclick="restartQuiz()">Restart Section</button>
+        <button class="btn-primary" style="width: auto; padding: 0.75rem 1.5rem; background:#334155;" onclick="openMistakesModal()">Review Mistakes</button>
+        <button class="btn-primary" style="width: auto; padding: 0.75rem 1.5rem; background:#0284c7;" onclick="shareScoreCard()">📲 Share Score</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- CUSTOM MOCK TEST BUILDER MODAL -->
+  <div class="modal-overlay" id="mock-builder-modal" onclick="closeMockBuilderModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <h3 style="color:#38bdf8;">🛠️ Custom Mock Test Builder</h3>
+        <button class="icon-btn" onclick="closeMockBuilderModal()">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">1. Select Tracks to Include:</label>
+        <div class="checkbox-grid">
+          <label class="custom-check-card">
+            <input type="checkbox" id="check-comp" checked /> Polity & SSC GK
+          </label>
+          <label class="custom-check-card">
+            <input type="checkbox" id="check-cyber" checked /> Cybersecurity
+          </label>
+          <label class="custom-check-card">
+            <input type="checkbox" id="check-ai" checked /> Generative AI
+          </label>
+          <label class="custom-check-card">
+            <input type="checkbox" id="check-web" checked /> Web Development
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">2. Test Length (Number of Questions):</label>
+        <select class="select-input" id="mock-count">
+          <option value="5">5 Questions (Quick Check)</option>
+          <option value="10" selected>10 Questions (Standard Mock)</option>
+          <option value="20">20 Questions (Extended Test)</option>
+          <option value="40">40 Questions (Full Subject Marathon)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">3. Timer Standard:</label>
+        <select class="select-input" id="mock-timer">
+          <option value="10">⚡ 10s Rapid Blitz (High Speed)</option>
+          <option value="20" selected>⏱ 20s Standard Exam Timer</option>
+          <option value="60">🧘 60s Relaxed / Concept Review</option>
+          <option value="0">♾️ No Timer (Zen Study Mode)</option>
+        </select>
+      </div>
+
+      <button class="btn-primary" style="margin-top:0.75rem;" onclick="startCustomMockTest()">
+        Launch Custom Mock Test
+      </button>
+    </div>
+  </div>
+
+  <!-- Bookmarks Modal -->
+  <div class="modal-overlay" id="bookmarks-modal" onclick="closeBookmarksModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <h3 style="color:var(--warning);">⭐ Starred Revision Deck</h3>
+        <button class="icon-btn" onclick="closeBookmarksModal()">✕</button>
+      </div>
+      <div id="bookmarks-list"></div>
+    </div>
+  </div>
+
+  <!-- Mistakes Modal -->
+  <div class="modal-overlay" id="mistakes-modal" onclick="closeMistakesModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <h3 style="color:#ef4444;">📖 Mistakes Revision Notebook</h3>
+        <button class="icon-btn" onclick="closeMistakesModal()">✕</button>
+      </div>
+      <div id="mistakes-list"></div>
+      <button class="btn-primary" style="margin-top:1rem; background:#ef4444;" onclick="clearMistakes()">Clear Notebook</button>
+    </div>
+  </div>
+
+  <script>
+    // Splash screen animation
+    window.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => {
+        const splash = document.getElementById("splash-screen");
+        const app = document.getElementById("app-shell");
+        splash.style.opacity = "0";
+        setTimeout(() => {
+          splash.style.display = "none";
+          app.classList.add("loaded");
+        }, 500);
+      }, 1400);
+    });
+
+    // Web Audio Synthesizer
+    let soundEnabled = true;
+    let audioCtx = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioCtx();
+        if (ctx.state === "suspended") ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        if (type === "click") {
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(450, ctx.currentTime);
+          gain.gain.setValueAtTime(0.04, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(); osc.stop(ctx.currentTime + 0.05);
+        } else if (type === "correct") {
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+          osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.1, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(); osc.stop(ctx.currentTime + 0.25);
+        } else if (type === "wrong") {
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(180, ctx.currentTime);
+          gain.gain.setValueAtTime(0.12, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(); osc.stop(ctx.currentTime + 0.3);
+        }
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById("sound-btn").textContent = soundEnabled ? "🔊" : "🔇";
+      localStorage.setItem("prepgenius_sound", soundEnabled ? "on" : "off");
+    }
+
+    // Storage
+    let userXP = parseInt(localStorage.getItem("prepgenius_xp") || "0", 10);
+    let mistakes = JSON.parse(localStorage.getItem("prepgenius_mistakes") || "[]");
+    let bookmarks = JSON.parse(localStorage.getItem("prepgenius_bookmarks") || "[]");
+
+    function updateGamificationDisplay() {
+      document.getElementById("user-xp").textContent = userXP;
+      let rank = "Novice Cadet";
+      if (userXP >= 1200) rank = "Master Exam Ace";
+      else if (userXP >= 600) rank = "Senior Specialist";
+      else if (userXP >= 200) rank = "Junior Technician";
+      document.getElementById("user-rank").textContent = rank;
+    }
+
+    function addXP(points) {
+      userXP += points;
+      localStorage.setItem("prepgenius_xp", userXP);
+      updateGamificationDisplay();
+    }
+
+    function saveMistake(q) {
+      if (!mistakes.some(m => m.id === q.id)) {
+        mistakes.push(q);
+        localStorage.setItem("prepgenius_mistakes", JSON.stringify(mistakes));
+      }
+    }
+
+    function toggleBookmarkCurrent() {
+      const q = filteredQuestions[currentIndex];
+      const idx = bookmarks.findIndex(b => b.id === q.id);
+      if (idx > -1) {
+        bookmarks.splice(idx, 1);
+        document.getElementById("btn-star").classList.remove("active");
+      } else {
+        bookmarks.push(q);
+        document.getElementById("btn-star").classList.add("active");
+      }
+      localStorage.setItem("prepgenius_bookmarks", JSON.stringify(bookmarks));
+      playSound("click");
+    }
+
+    function openBookmarksModal() {
+      const list = document.getElementById("bookmarks-list");
+      list.innerHTML = "";
+      if (bookmarks.length === 0) {
+        list.innerHTML = "<p style='color:var(--muted); text-align:center;'>No starred questions yet.</p>";
+      } else {
+        bookmarks.forEach((m, idx) => {
+          const div = document.createElement("div");
+          div.className = "deck-item";
+          div.innerHTML = "<strong>#" + (idx + 1) + ": " + m.question + "</strong>" +
+            "<p style='color:var(--success); margin-top:0.35rem;'>✓ Correct: " + m.options[m.answer] + "</p>";
+          list.appendChild(div);
+        });
+      }
+      document.getElementById("bookmarks-modal").style.display = "flex";
+      playSound("click");
+    }
+
+    function closeBookmarksModal() {
+      document.getElementById("bookmarks-modal").style.display = "none";
+    }
+
+    function openMistakesModal() {
+      const list = document.getElementById("mistakes-list");
+      list.innerHTML = "";
+      if (mistakes.length === 0) {
+        list.innerHTML = "<p style='color:var(--muted); text-align:center;'>No mistakes saved yet! Excellent work.</p>";
+      } else {
+        mistakes.forEach((m, idx) => {
+          const div = document.createElement("div");
+          div.className = "deck-item";
+          div.innerHTML = "<strong>#" + (idx + 1) + ": " + m.question + "</strong>" +
+            "<p style='color:var(--success); margin-top:0.35rem;'>✓ Correct: " + m.options[m.answer] + "</p>" +
+            "<p style='color:var(--muted); font-size:0.8rem; margin-top:0.25rem;'>💡 " + m.analysis + "</p>";
+          list.appendChild(div);
+        });
+      }
+      document.getElementById("mistakes-modal").style.display = "flex";
+      playSound("click");
+    }
+
+    function closeMistakesModal() {
+      document.getElementById("mistakes-modal").style.display = "none";
+    }
+
+    function clearMistakes() {
+      mistakes = [];
+      localStorage.removeItem("prepgenius_mistakes");
+      openMistakesModal();
+    }
+
+    function shareScoreCard() {
+      const totalQs = filteredQuestions.length;
+      const acc = Math.round((score / totalQs) * 100);
+      const text = `🏆 PrepGenius AI Exam Result:\nScore: ${score}/${totalQs} (${acc}% Accuracy)\nRank: ${document.getElementById("user-rank").textContent}\nPractice here: ${window.location.href}`;
+      if (navigator.share) {
+        navigator.share({ title: "My PrepGenius Score", text: text }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(text).then(() => alert("Score card copied to clipboard!"));
+      }
+    }
+
+    function askAstraAIDoubt() {
+      const query = document.getElementById("doubt-query").value.trim();
+      const q = filteredQuestions[currentIndex];
+      const replyBox = document.getElementById("doubt-response");
+
+      if (!query) {
+        replyBox.style.display = "block";
+        replyBox.innerHTML = `<strong>Astra AI:</strong> The correct answer is <strong>${q.options[q.answer]}</strong>. ${q.analysis}`;
+        return;
+      }
+
+      replyBox.style.display = "block";
+      replyBox.innerHTML = `<strong>Astra AI:</strong> Regarding <em>"${query}"</em>: In ${q.categoryName}, <strong>${q.options[q.answer]}</strong> is the primary standard. ${q.mnemonic}`;
+      document.getElementById("doubt-query").value = "";
+    }
+
+    // ==========================================
+    // 160-Question Master Bank (40 Per Category)
+    // ==========================================
+    const masterBank = [
+      // 1. COMPETITIVE (1-40)
+      { id: 1, category: "COMPETITIVE", categoryName: "Polity & Constitution", question: "Which Article of the Indian Constitution abolishes 'Untouchability'?", options: ["Article 14", "Article 17", "Article 21", "Article 32"], answer: 1, analysis: "Article 17 abolishes untouchability and penalizes its practice.", mnemonic: "Article 17 = Severe ban on discrimination." },
+      { id: 2, category: "COMPETITIVE", categoryName: "Polity & Constitution", question: "Which Amendment added 'Socialist', 'Secular', and 'Integrity' to the Preamble?", options: ["44th Amendment", "42nd Amendment", "73rd Amendment", "86th Amendment"], answer: 1, analysis: "The 42nd Amendment Act of 1976 modified the Preamble with these terms.", mnemonic: "4 + 2 = 6 (1976 Mini-Constitution)." },
+      { id: 3, category: "COMPETITIVE", categoryName: "Indian Geography", question: "Which major river flows westward through a rift valley between Vindhya and Satpura ranges?", options: ["Godavari", "Krishna", "Narmada", "Mahanadi"], answer: 2, analysis: "Narmada flows westward through a linear rift valley into the Arabian Sea.", mnemonic: "Narmada & Tapti flow westward in rift valleys." },
+      { id: 4, category: "COMPETITIVE", categoryName: "Polity & Governance", question: "Who audits all receipts and expenditures of the Government of India under Article 148?", options: ["Attorney General", "Comptroller & Auditor General (CAG)", "Finance Minister", "Chief Justice of India"], answer: 1, analysis: "Article 148 provides for the CAG, the guardian of the public purse in India.", mnemonic: "CAG = Guardian of Public Funds." },
+      { id: 5, category: "COMPETITIVE", categoryName: "General Science", question: "Which layer of the atmosphere contains the ozone layer absorbing UV radiation?", options: ["Troposphere", "Stratosphere", "Mesosphere", "Thermosphere"], answer: 1, analysis: "The Stratosphere holds the ozone layer (O3) which shields the Earth from harmful UV rays.", mnemonic: "Stratosphere Shields Solar UV." },
+      { id: 6, category: "COMPETITIVE", categoryName: "Polity & Rights", question: "Which Article guarantees the Right to Constitutional Remedies, called 'Heart and Soul' by Dr. Ambedkar?", options: ["Article 19", "Article 21", "Article 32", "Article 44"], answer: 2, analysis: "Article 32 empowers citizens to move the Supreme Court directly via writs.", mnemonic: "Article 32 = Supreme Court Writ Protection." },
+      { id: 7, category: "COMPETITIVE", categoryName: "Polity & Rights", question: "Under which Article is the 'Right to Education' enacted as a Fundamental Right?", options: ["Article 20", "Article 21A", "Article 25", "Article 30"], answer: 1, analysis: "Article 21A was inserted by the 86th Constitutional Amendment Act (2002) for children aged 6 to 14.", mnemonic: "21A = All kids go to School." },
+      { id: 8, category: "COMPETITIVE", categoryName: "Polity & Governance", question: "What is the minimum age required to qualify for election as the President of India?", options: ["25 years", "30 years", "35 years", "40 years"], answer: 2, analysis: "Article 58 prescribes that a candidate must have completed 35 years of age to contest for President.", mnemonic: "President & Governor = 35 years minimum." },
+      { id: 9, category: "COMPETITIVE", categoryName: "Polity & Parliament", question: "Who presides over a joint sitting of both Houses of Parliament in India?", options: ["President", "Prime Minister", "Speaker of Lok Sabha", "Chairman of Rajya Sabha"], answer: 2, analysis: "Under Article 118(4), the Speaker of the Lok Sabha presides over joint parliamentary sittings.", mnemonic: "Joint Sitting = Lok Sabha Speaker presides." },
+      { id: 10, category: "COMPETITIVE", categoryName: "Indian Economy", question: "In India, which institution formulates monetary policy and regulates repo rates?", options: ["SEBI", "NITI Aayog", "Reserve Bank of India (RBI)", "Finance Commission"], answer: 2, analysis: "The Monetary Policy Committee (MPC) of the Reserve Bank of India fixes the benchmark policy repo rate.", mnemonic: "RBI controls Repo & Money Supply." },
+      { id: 11, category: "COMPETITIVE", categoryName: "Indian History", question: "In which year was the historic Battle of Plassey fought?", options: ["1757", "1764", "1857", "1905"], answer: 0, analysis: "The Battle of Plassey was fought on June 23, 1757, establishing British East India Company dominance.", mnemonic: "1757 Plassey; 1764 Buxar." },
+      { id: 12, category: "COMPETITIVE", categoryName: "Indian Geography", question: "Which is the highest peak in the Western Ghats (Sahyadri) range?", options: ["Doda Betta", "Anamudi", "Kalsubai", "Guru Shikhar"], answer: 1, analysis: "Anamudi (2,695 m) in Kerala is the highest peak in South India and the Western Ghats.", mnemonic: "Anamudi = Apex of South India." },
+      { id: 13, category: "COMPETITIVE", categoryName: "Polity & Law", question: "Which Schedule of the Indian Constitution deals with the allocation of seats in the Rajya Sabha?", options: ["Second Schedule", "Fourth Schedule", "Seventh Schedule", "Eighth Schedule"], answer: 1, analysis: "The Fourth Schedule allocates Rajya Sabha council seats across Indian States and Union Territories.", mnemonic: "4th Schedule = Federal Council Seats." },
+      { id: 14, category: "COMPETITIVE", categoryName: "Polity & Law", question: "The Seventh Schedule of the Indian Constitution defines the division of powers through which lists?", options: ["Union, State, and Concurrent Lists", "Official Languages List", "Municipal powers", "Tribal administration"], answer: 0, analysis: "Article 246 (Seventh Schedule) classifies legislative powers into Union, State, and Concurrent Lists.", mnemonic: "7th = Tri-List Division of Powers." },
+      { id: 15, category: "COMPETITIVE", categoryName: "General Science", question: "What is the primary greenhouse gas responsible for human-induced global warming?", options: ["Methane", "Carbon Dioxide", "Nitrous Oxide", "Sulfur Hexafluoride"], answer: 1, analysis: "Carbon dioxide (CO2) accounts for the largest radiative forcing in human-driven climate change.", mnemonic: "CO2 = Primary climate driver." },
+      { id: 16, category: "COMPETITIVE", categoryName: "General Awareness", question: "Which writ literally translates from Latin to 'You may have the body'?", options: ["Mandamus", "Habeas Corpus", "Quo-Warranto", "Certiorari"], answer: 1, analysis: "Habeas Corpus commands that a detained individual be physically presented before court to test lawfulness.", mnemonic: "Habeas Corpus = Produce the body." },
+      { id: 17, category: "COMPETITIVE", categoryName: "General Awareness", question: "Which writ orders a public official or statutory body to perform a public duty they have failed to execute?", options: ["Mandamus", "Prohibition", "Certiorari", "Habeas Corpus"], answer: 0, analysis: "Mandamus means 'We Command' and compels performance of a mandatory official duty.", mnemonic: "Mandamus = 'We Command'." },
+      { id: 18, category: "COMPETITIVE", categoryName: "Indian Polity", question: "Directive Principles of State Policy (DPSP) in Part IV were borrowed primarily from which country's constitution?", options: ["United States", "Ireland", "Australia", "Soviet Union"], answer: 1, analysis: "India adopted DPSPs (Articles 36-51) inspired by the Irish Constitution of 1937.", mnemonic: "DPSP = Derived from Ireland." },
+      { id: 19, category: "COMPETITIVE", categoryName: "Indian Polity", question: "Fundamental Duties in Article 51A were incorporated based on the recommendations of which Committee?", options: ["Sarkaria Commission", "Swaran Singh Committee", "Verma Committee", "Balwant Rai Mehta Committee"], answer: 1, analysis: "The Swaran Singh Committee (1976) recommended incorporating Fundamental Duties into the Constitution.", mnemonic: "Swaran Singh = Sworn Duties." },
+      { id: 20, category: "COMPETITIVE", categoryName: "Indian Geography", question: "Which Indian state has the longest coastline on the mainland?", options: ["Tamil Nadu", "Maharashtra", "Gujarat", "Andhra Pradesh"], answer: 2, analysis: "Gujarat possesses the longest mainland coastline in India (~1,600 km).", mnemonic: "Gujarat = Longest coast contour." },
+      { id: 21, category: "COMPETITIVE", categoryName: "Indian Geography", question: "The standard meridian of India (82°30' E) passes through which prominent city?", options: ["Bhopal", "Mirzapur (near Prayagraj)", "Nagpur", "Hyderabad"], answer: 1, analysis: "Indian Standard Time (IST) is based on 82.5° E longitude passing through Mirzapur, Uttar Pradesh.", mnemonic: "82.5° E = Mirzapur Clock Reference." },
+      { id: 22, category: "COMPETITIVE", categoryName: "Indian Economy", question: "Which constitutional amendment introduced the Goods and Services Tax (GST) in India?", options: ["99th Amendment", "101st Amendment", "103rd Amendment", "104th Amendment"], answer: 1, analysis: "The 101st Constitutional Amendment Act (2016) created nationwide unified GST.", mnemonic: "101 = One Nation, One Tax." },
+      { id: 23, category: "COMPETITIVE", categoryName: "Polity & Governance", question: "Who is the ex-officio Chairman of the Rajya Sabha?", options: ["President", "Vice-President of India", "Prime Minister", "Opposition Leader"], answer: 1, analysis: "Under Article 64, the Vice-President of India serves as the ex-officio Chairman of the Rajya Sabha.", mnemonic: "VP = Rajya Sabha Chairperson." },
+      { id: 24, category: "COMPETITIVE", categoryName: "General Science", question: "What unit is commonly used to measure the depth of ocean water?", options: ["Fathom", "Knot", "Nautical Mile", "Coulomb"], answer: 0, analysis: "A fathom is a marine unit of length equal to 6 feet (1.8288 meters), commonly used for ocean depth.", mnemonic: "Fathom = Oceanic depth measurement." },
+      { id: 25, category: "COMPETITIVE", categoryName: "General Science", question: "Which metal exists in liquid state at normal room temperature?", options: ["Mercury", "Gallium", "Sodium", "Bromine"], answer: 0, analysis: "Mercury (Hg) is the only transition metallic element liquid at standard temperature and pressure.", mnemonic: "Mercury = Liquid Metal." },
+      { id: 26, category: "COMPETITIVE", categoryName: "Indian History", question: "Who founded the Brahmo Samaj in Kolkata in 1828?", options: ["Swami Vivekananda", "Raja Ram Mohan Roy", "Ishwar Chandra Vidyasagar", "Dayananda Saraswati"], answer: 1, analysis: "Raja Ram Mohan Roy founded Brahmo Samaj to campaign against social evils like Sati.", mnemonic: "Raja Ram Mohan Roy = Renaissance & Brahmo Samaj." },
+      { id: 27, category: "COMPETITIVE", categoryName: "Indian History", question: "Under whose viceroyalty was the Partition of Bengal announced in 1905?", options: ["Lord Ripon", "Lord Curzon", "Lord Dalhousie", "Lord Chelmsford"], answer: 1, analysis: "Lord Curzon partitioned Bengal in 1905, triggering the nationwide Swadeshi movement.", mnemonic: "Curzon = Cut Bengal." },
+      { id: 28, category: "COMPETITIVE", categoryName: "Polity & Constitution", question: "Money Bills can be introduced only in which legislative body in India?", options: ["Rajya Sabha", "Lok Sabha", "Joint Session", "Cabinet Committee"], answer: 1, analysis: "Under Article 109, a Money Bill can only originate in the Lok Sabha with the recommendation of the President.", mnemonic: "Money Bill = Lok Sabha exclusive prerogative." },
+      { id: 29, category: "COMPETITIVE", categoryName: "Polity & Constitution", question: "Under Article 356, the President can impose President's Rule in a state due to failure of what?", options: ["Financial credit", "Constitutional machinery", "External aggression", "Law enforcement strikes"], answer: 1, analysis: "Article 356 allows President's Rule on report of failure of constitutional machinery in states.", mnemonic: "356 = State Constitutional Breakdown." },
+      { id: 30, category: "COMPETITIVE", categoryName: "Indian Geography", question: "Which water strait separates India and Sri Lanka?", options: ["Malacca Strait", "Palk Strait", "Sunda Strait", "Hormuz Strait"], answer: 1, analysis: "Palk Strait connects the Bay of Bengal with Palk Bay and separates Tamil Nadu from Jaffna, Sri Lanka.", mnemonic: "Palk Strait = India & Sri Lanka boundary." },
+      { id: 31, category: "COMPETITIVE", categoryName: "Indian Geography", question: "Which soil type is most suitable for cotton cultivation in India and is also called Regur Soil?", options: ["Alluvial Soil", "Black Soil", "Laterite Soil", "Red Soil"], answer: 1, analysis: "Black soil (Regur soil), formed by Deccan basalt lava weathering, has high moisture retention for cotton.", mnemonic: "Regur = Black Cotton Soil." },
+      { id: 32, category: "COMPETITIVE", categoryName: "Polity & Constitution", question: "How many Fundamental Rights were originally guaranteed by the Indian Constitution in 1950?", options: ["6", "7", "8", "10"], answer: 1, analysis: "There were 7 originally. The Right to Property was removed by the 44th Amendment (1978), leaving 6.", mnemonic: "7 originally; 6 today." },
+      { id: 33, category: "COMPETITIVE", categoryName: "General Science", question: "What is the powerhouse of the eukaryotic cell where ATP is synthesized?", options: ["Ribosome", "Mitochondria", "Golgi apparatus", "Endoplasmic reticulum"], answer: 1, analysis: "Mitochondria perform cellular respiration to produce energy in the form of ATP.", mnemonic: "Mitochondria = Cellular ATP Powerhouse." },
+      { id: 34, category: "COMPETITIVE", categoryName: "Indian Polity", question: "Which tier of government was granted constitutional status by the 73rd Amendment Act (1992)?", options: ["Municipalities", "Panchayati Raj Institutions", "Cooperative Societies", "Tribal Councils"], answer: 1, analysis: "The 73rd Amendment added Part IX and the 11th Schedule providing a 3-tier Panchayati Raj system.", mnemonic: "73rd = Rural Panchayats; 74th = Urban Municipalities." },
+      { id: 35, category: "COMPETITIVE", categoryName: "Indian Geography", question: "The Majuli river island, the world's largest inhabited freshwater river island, is located on which river?", options: ["Ganga", "Brahmaputra", "Indus", "Godavari"], answer: 1, analysis: "Majuli is situated in Assam on the Brahmaputra river.", mnemonic: "Majuli = Brahmaputra island." },
+      { id: 36, category: "COMPETITIVE", categoryName: "Polity & Law", question: "Under the Indian Constitution, the residuary powers of legislation are vested with whom?", options: ["State Legislatures", "Parliament of India", "Supreme Court", "President of India"], answer: 1, analysis: "Article 248 grants exclusive power to Parliament to make laws with respect to any matter not in Concurrent or State lists.", mnemonic: "Residuary Powers = Parliament." },
+      { id: 37, category: "COMPETITIVE", categoryName: "General Science", question: "What vitamin is synthesized in human skin upon exposure to solar ultraviolet rays?", options: ["Vitamin A", "Vitamin B12", "Vitamin C", "Vitamin D"], answer: 3, analysis: "UVB rays stimulate the production of cholecalciferol (Vitamin D3) in skin epidermal layers.", mnemonic: "Sunshine = Vitamin D." },
+      { id: 38, category: "COMPETITIVE", categoryName: "Indian Geography", question: "Which Indian state shares international borders with three different countries (Nepal, Bhutan, China)?", options: ["Arunachal Pradesh", "Sikkim", "West Bengal", "Assam"], answer: 1, analysis: "Sikkim is wedged between Nepal to the west, Bhutan to the east, and China (Tibet) to the north.", mnemonic: "Sikkim borders Nepal, Bhutan, China." },
+      { id: 39, category: "COMPETITIVE", categoryName: "Polity & Elections", question: "The voting age in India was reduced from 21 years to 18 years by which Constitutional Amendment?", options: ["44th Amendment", "61st Amendment", "73rd Amendment", "86th Amendment"], answer: 1, analysis: "The 61st Amendment Act of 1988 amended Article 326 to lower the voting age to 18 years.", mnemonic: "61st Amendment = Voting age to 18." },
+      { id: 40, category: "COMPETITIVE", categoryName: "General Science", question: "What is the chemical name of common baking soda?", options: ["Sodium Carbonate", "Sodium Bicarbonate", "Calcium Hydroxide", "Sodium Chloride"], answer: 1, analysis: "Baking soda is Sodium Hydrogen Carbonate (NaHCO3), whereas washing soda is Sodium Carbonate (Na2CO3).", mnemonic: "Baking Soda = Sodium BI-carbonate." },
+
+      // 2. CYBERSECURITY (41-80)
+      { id: 41, category: "CYBER_SEC", categoryName: "Security Fundamentals", question: "In information security, what does the fundamental CIA Triad stand for?", options: ["Control, Integrity, Authorization", "Confidentiality, Integrity, Availability", "Cyber, Intelligence, Authentication", "Cryptography, Inspection, Access"], answer: 1, analysis: "The CIA Triad (Confidentiality, Integrity, Availability) represents the benchmark security pillars.", mnemonic: "CIA = Keep it Private, Untampered, and Online." },
+      { id: 42, category: "CYBER_SEC", categoryName: "Web Security", question: "Which attack injects malicious SQL statements into database queries via unsanitized input fields?", options: ["Cross-Site Scripting (XSS)", "SQL Injection (SQLi)", "Buffer Overflow", "DDoS"], answer: 1, analysis: "SQL Injection occurs when user input is concatenated directly into SQL queries rather than using parameterized statements.", mnemonic: "SQLi = Malicious query manipulation." },
+      { id: 43, category: "CYBER_SEC", categoryName: "Web Security", question: "Which vulnerability allows attackers to execute malicious JavaScript in a victim's browser via compromised web pages?", options: ["Cross-Site Scripting (XSS)", "SQL Injection", "Man-in-the-Middle", "ARP Spoofing"], answer: 0, analysis: "XSS occurs when an application includes untrusted data in a web page without proper escaping, executing JS in client browsers.", mnemonic: "XSS = Cross-Site Scripting JS injection." },
+      { id: 44, category: "CYBER_SEC", categoryName: "Network Security", question: "What popular open-source network scanner is used to discover active hosts and open ports on a subnet?", options: ["Wireshark", "Nmap", "Metasploit", "Burp Suite"], answer: 1, analysis: "Nmap (Network Mapper) scans network targets, identifying open listening ports, OS fingerprints, and running services.", mnemonic: "Nmap = Network Port Mapping tool." },
+      { id: 45, category: "CYBER_SEC", categoryName: "Network Security", question: "Which tool is the industry standard for capturing and analyzing raw network packet traffic in real time?", options: ["Wireshark", "John the Ripper", "Hydra", "Nessus"], answer: 0, analysis: "Wireshark captures network frames via packet sniffers (pcap) to inspect low-level network protocol exchanges.", mnemonic: "Wireshark = Packet sniffing shark." },
+      { id: 46, category: "CYBER_SEC", categoryName: "Cryptography", question: "Which type of cryptography uses a single shared secret key for both encryption and decryption?", options: ["Asymmetric Cryptography", "Symmetric Cryptography", "Public Key Cryptography", "Quantum Cryptography"], answer: 1, analysis: "Symmetric algorithms (like AES) utilize the exact same secret key for encrypting and decrypting data.", mnemonic: "Symmetric = Same Shared Key." },
+      { id: 47, category: "CYBER_SEC", categoryName: "Cryptography", question: "Which widely used asymmetric cryptosystem relies on the mathematical difficulty of factoring large prime numbers?", options: ["AES", "DES", "RSA", "Blowfish"], answer: 2, analysis: "RSA (Rivest-Shamir-Adleman) utilizes public and private key pairs based on factoring semiprime integers.", mnemonic: "RSA = Public/Private Prime Factorization." },
+      { id: 48, category: "CYBER_SEC", categoryName: "Network Attacks", question: "What attack involves flooding a web server with massive illegitimate traffic from thousands of infected bots?", options: ["Brute Force Attack", "Distributed Denial of Service (DDoS)", "Phishing", "Session Hijacking"], answer: 1, analysis: "DDoS leverages distributed botnets to saturate bandwidth and crash web infrastructure.", mnemonic: "DDoS = Distributed flood attacking Availability." },
+      { id: 49, category: "CYBER_SEC", categoryName: "Social Engineering", question: "What social engineering technique sends deceptive emails mimicking legitimate banks to steal credentials?", options: ["Phishing", "Spoofing", "Eavesdropping", "Dumpster Diving"], answer: 0, analysis: "Phishing fools victims into entering credentials or clicking malicious links via fraudulent emails.", mnemonic: "Phishing = Angling for passwords." },
+      { id: 50, category: "CYBER_SEC", categoryName: "Authentication", question: "Multi-Factor Authentication (MFA) requires factors from different categories. Which is 'Something you are'?", options: ["Password", "SMS OTP", "Fingerprint / Face ID", "Hardware YubiKey"], answer: 2, analysis: "Biometrics (fingerprints, retina, facial recognition) represent 'something you are'.", mnemonic: "Something you ARE = Biometrics." },
+      { id: 51, category: "CYBER_SEC", categoryName: "Cryptography", question: "Which cryptographic hashing algorithm produces a fixed 256-bit digest and is virtually irreversible?", options: ["MD5", "SHA-256", "DES", "RC4"], answer: 1, analysis: "SHA-256 (part of SHA-2 family) creates a one-way mathematical hash widely used in SSL certificates and blockchain.", mnemonic: "SHA-256 = Unbreakable One-Way Digest." },
+      { id: 52, category: "CYBER_SEC", categoryName: "Malware Types", question: "What category of malware encrypts victim files and demands cryptocurrency payments to restore access?", options: ["Spyware", "Trojan Horse", "Ransomware", "Rootkit"], answer: 2, analysis: "Ransomware locks victim files using asymmetric encryption and demands payment for the decryption key.", mnemonic: "Ransomware = Extortion via encryption." },
+      { id: 53, category: "CYBER_SEC", categoryName: "Network Protocols", question: "What is the secure cryptographic replacement for unencrypted Telnet on TCP port 22?", options: ["FTP", "SSH (Secure Shell)", "SNMP", "RDP"], answer: 1, analysis: "SSH provides encrypted shell access and file transfer over TCP port 22.", mnemonic: "SSH = Port 22 Secure Shell." },
+      { id: 54, category: "CYBER_SEC", categoryName: "Web Security", question: "Which HTTPS protocol security mechanism prevents Man-in-the-Middle (MITM) attacks by encrypting web traffic?", options: ["TLS (Transport Layer Security)", "SNMP", "DNSSEC", "RIP"], answer: 0, analysis: "TLS (successor to SSL) encrypts communications between web browsers and servers.", mnemonic: "HTTPS = HTTP over TLS." },
+      { id: 55, category: "CYBER_SEC", categoryName: "Network Defense", question: "What device inspects and filters incoming and outgoing network traffic based on predefined security rules?", options: ["Switch", "Repeater", "Firewall", "Hub"], answer: 2, analysis: "Firewalls act as network barriers controlling traffic based on IP addresses, ports, and protocols.", mnemonic: "Firewall = Traffic security gatekeeper." },
+      { id: 56, category: "CYBER_SEC", categoryName: "Ethical Hacking", question: "In ethical hacking, what is a hacker who operates legally with written authorization called?", options: ["Black Hat Hacker", "White Hat Hacker", "Grey Hat Hacker", "Script Kiddie"], answer: 1, analysis: "White hat hackers perform authorized security audits and penetration tests to strengthen defenses.", mnemonic: "White Hat = Legal & Authorized." },
+      { id: 57, category: "CYBER_SEC", categoryName: "Network Security", question: "What network protocol vulnerability allows an attacker on a LAN to associate their MAC address with the gateway's IP?", options: ["DNS Amplification", "ARP Poisoning / Spoofing", "BGP Hijacking", "SYN Flood"], answer: 1, analysis: "ARP Spoofing sends falsified ARP messages over a local network to intercept LAN traffic.", mnemonic: "ARP Spoofing = Falsifying LAN MAC addresses." },
+      { id: 58, category: "CYBER_SEC", categoryName: "Web Pentesting", question: "What is the primary purpose of using Burp Suite in ethical hacking?", options: ["Cracking Wi-Fi WPA2 handshakes", "Intercepting and inspecting HTTP/S proxy traffic", "Port scanning subnets", "DDoS simulation"], answer: 1, analysis: "Burp Suite operates as an intercepting proxy between browser and server to test web application vulnerabilities.", mnemonic: "Burp Suite = Web App Proxy & Pentesting." },
+      { id: 59, category: "CYBER_SEC", categoryName: "Security Principles", question: "What security principle dictates that users and services should only be granted the minimum permissions necessary?", options: ["Principle of Least Privilege", "Separation of Duties", "Defense in Depth", "Fail-Safe Defaults"], answer: 0, analysis: "Least Privilege restricts account access to only the resources strictly required for its work.", mnemonic: "Least Privilege = Only minimum needed access." },
+      { id: 60, category: "CYBER_SEC", categoryName: "Vulnerability Assessment", question: "What is an unknown security vulnerability called that is exploited before the vendor develops a patch?", options: ["Zero-Day Vulnerability", "Known Exploit", "Rootkit", "Cross-Site Bug"], answer: 0, analysis: "Zero-Day refers to a flaw with zero days of developer awareness or official patch availability.", mnemonic: "Zero-Day = Unpatched & Unknown flaw." },
+      { id: 61, category: "CYBER_SEC", categoryName: "Password Security", question: "What random data is added to a password before hashing to protect against precomputed Rainbow Table attacks?", options: ["Pepper", "Salt", "Nonce", "IV"], answer: 1, analysis: "Salting appends unique random strings to passwords before hashing so identical passwords yield different hashes.", mnemonic: "Salt = Defeats Rainbow Tables." },
+      { id: 62, category: "CYBER_SEC", categoryName: "Web Security", question: "What browser cookie security flag prevents client-side JavaScript from reading sensitive session cookies via XSS?", options: ["Secure", "HttpOnly", "SameSite", "Domain"], answer: 1, analysis: "The HttpOnly flag blocks document.cookie access from JavaScript, thwarting cookie theft via XSS.", mnemonic: "HttpOnly = Blocks JS cookie reading." },
+      { id: 63, category: "CYBER_SEC", categoryName: "Web Security", question: "What attack forces an authenticated user's browser to execute unwanted actions on a trusted site without consent?", options: ["Cross-Site Request Forgery (CSRF)", "SQLi", "Directory Traversal", "Clickjacking"], answer: 0, analysis: "CSRF exploits ambient browser credentials (cookies) to forge requests to authenticated applications.", mnemonic: "CSRF = Forged unauthorized request." },
+      { id: 64, category: "CYBER_SEC", categoryName: "Malware & OS", question: "What type of stealth malware embeds deep within an operating system kernel to conceal attacker activity?", options: ["Adware", "Macro Virus", "Rootkit", "Worm"], answer: 2, analysis: "Rootkits hook low-level kernel APIs to hide processes, network sockets, and files from security scanners.", mnemonic: "Rootkit = Deep Kernel Stealth." },
+      { id: 65, category: "CYBER_SEC", categoryName: "Network Defense", question: "What security system monitors network traffic for suspicious signatures and generates alerts without dropping packets?", options: ["Intrusion Detection System (IDS)", "Intrusion Prevention System (IPS)", "Hub", "Gateway"], answer: 0, analysis: "An IDS passively analyzes traffic copies to alert administrators, whereas an IPS sits inline to actively drop packets.", mnemonic: "IDS = Detects & Alerts; IPS = Blocks traffic." },
+      { id: 66, category: "CYBER_SEC", categoryName: "Cryptography", question: "What mathematical property ensures that the sender cannot deny having sent an encrypted or digitally signed message?", options: ["Confidentiality", "Non-Repudiation", "Availability", "Integrity"], answer: 1, analysis: "Non-repudiation uses digital signatures with private keys to legally prove message authorship.", mnemonic: "Non-Repudiation = Cannot deny sending." },
+      { id: 67, category: "CYBER_SEC", categoryName: "Wireless Security", question: "Which Wi-Fi security protocol introduced Simultaneous Authentication of Equals (SAE) to stop offline dictionary attacks?", options: ["WEP", "WPA", "WPA2", "WPA3"], answer: 3, analysis: "WPA3 mandates SAE (Dragonfly handshake) to neutralize offline dictionary password attacks on Wi-Fi.", mnemonic: "WPA3 = Modern Wi-Fi SAE defense." },
+      { id: 68, category: "CYBER_SEC", categoryName: "Security Architecture", question: "What security framework operates on the strict motto 'Never Trust, Always Verify' across all network segments?", options: ["Perimeter Defense", "Zero Trust Architecture", "DMZ Bastion Model", "Defense by Obscurity"], answer: 1, analysis: "Zero Trust assumes threats exist inside the network and requires continuous authentication for all requests.", mnemonic: "Zero Trust = Never trust, verify everything." },
+      { id: 69, category: "CYBER_SEC", categoryName: "Incident Response", question: "In a Security Operations Center (SOC), what does SIEM stand for?", options: ["System Incident and Error Management", "Security Information and Event Management", "Standard Inspection and Evidence Metric", "Software Intrusion and Exploit Monitor"], answer: 1, analysis: "SIEM aggregates and correlates log data across servers, network devices, and firewalls to detect anomalies.", mnemonic: "SIEM = Log aggregation & Event Correlation." },
+      { id: 70, category: "CYBER_SEC", categoryName: "Network Protocols", question: "Which protocol maps IP addresses to physical MAC addresses on a local Ethernet segment?", options: ["DNS", "DHCP", "ARP", "BGP"], answer: 2, analysis: "Address Resolution Protocol (ARP) resolves Layer 3 IP addresses to Layer 2 physical MAC addresses.", mnemonic: "ARP = IP to MAC translation." },
+      { id: 71, category: "CYBER_SEC", categoryName: "Ethical Hacking Tools", question: "Which Linux distribution is specifically packaged with hundreds of penetration testing and digital forensics tools?", options: ["Ubuntu LTS", "Kali Linux", "CentOS", "Fedora"], answer: 1, analysis: "Kali Linux (developed by Offensive Security) is the standard OS for ethical hacking and pentesting.", mnemonic: "Kali Linux = Pentester's toolbox." },
+      { id: 72, category: "CYBER_SEC", categoryName: "Web Security", question: "What HTTP header tells browsers that a website must only be accessed using HTTPS, never unencrypted HTTP?", options: ["Content-Security-Policy", "X-Frame-Options", "Strict-Transport-Security (HSTS)", "Access-Control-Allow-Origin"], answer: 2, analysis: "HSTS instructs browsers to automatically convert all insecure HTTP links into secure HTTPS connections.", mnemonic: "HSTS = Enforces Strict HTTPS." },
+      { id: 73, category: "CYBER_SEC", categoryName: "Web Security", question: "Which security header is designed to prevent Clickjacking attacks by controlling whether a site can be embedded in an iframe?", options: ["X-Frame-Options", "X-Content-Type-Options", "Referrer-Policy", "ETag"], answer: 0, analysis: "X-Frame-Options (DENY or SAMEORIGIN) prevents attackers from rendering pages inside hidden framing overlays.", mnemonic: "X-Frame-Options = Stops Clickjacking in frames." },
+      { id: 74, category: "CYBER_SEC", categoryName: "Malware Behavior", question: "Unlike viruses which require human execution, what self-replicating malware spreads automatically across networks?", options: ["Trojan", "Worm", "Logic Bomb", "Keylogger"], answer: 1, analysis: "Worms propagate autonomously across networks exploiting OS and protocol vulnerabilities without host file execution.", mnemonic: "Worm = Autonomous network replication." },
+      { id: 75, category: "CYBER_SEC", categoryName: "Cloud Security", question: "In cloud computing, what model defines that cloud providers manage infrastructure while customers secure data?", options: ["Shared Responsibility Model", "Zero Liability Policy", "Complete Delegation Model", "Single Tenant Model"], answer: 0, analysis: "The Shared Responsibility Model divides security obligations between the Cloud Service Provider (CSP) and customer.", mnemonic: "Shared Responsibility = Cloud Provider + Customer split." },
+      { id: 76, category: "CYBER_SEC", categoryName: "Password Attacks", question: "What password cracking technique tries common words from pre-compiled text files (like rockyou.txt)?", options: ["Rainbow Table Attack", "Dictionary Attack", "Timing Attack", "Man-in-the-Middle"], answer: 1, analysis: "Dictionary attacks run thousands of pre-compiled common words and variations against authentication targets.", mnemonic: "Dictionary Attack = Wordlist iteration." },
+      { id: 77, category: "CYBER_SEC", categoryName: "System Defense", question: "What is a honeypot deployed on a corporate network primarily designed to do?", options: ["Speed up user internet access", "Decoy system designed to lure, detect, and analyze attacker behavior", "Filter spam emails", "Store offsite backup data"], answer: 1, analysis: "Honeypots are decoy servers mimicking real assets to trap and monitor intruder exploitation techniques.", mnemonic: "Honeypot = Decoy trap for attackers." },
+      { id: 78, category: "CYBER_SEC", categoryName: "Digital Forensics", question: "What is the primary rule of digital forensics evidence acquisition on a suspect hard disk?", options: ["Boot into the OS to check files", "Create a bit-stream forensic image and analyze the copy write-blocked", "Delete temporary logs first", "Run antivirus cleaning immediately"], answer: 1, analysis: "Forensic examiners must acquire bit-by-bit disk images via hardware write-blockers to preserve original evidence integrity.", mnemonic: "Forensics = Write-blocked bit-stream copy." },
+      { id: 79, category: "CYBER_SEC", categoryName: "Network Security", question: "What port does standard unencrypted DNS use for resolving domain names via UDP?", options: ["Port 21", "Port 53", "Port 80", "Port 443"], answer: 1, analysis: "DNS queries resolve over Port 53 (predominantly UDP for queries, TCP for zone transfers).", mnemonic: "DNS = Port 53." },
+      { id: 80, category: "CYBER_SEC", categoryName: "Network Security", question: "What protocol adds cryptographic digital signatures to DNS lookups to protect against DNS cache poisoning?", options: ["DNSSEC", "DHCP Snooping", "BGPSEC", "TLS-DNS"], answer: 0, analysis: "DNSSEC (Domain Name System Security Extensions) signs DNS records cryptographically to authenticate origin.", mnemonic: "DNSSEC = Cryptographic authentication for DNS." },
+
+      // 3. AI & LLMs (81-120)
+      { id: 81, category: "AI_TECH", categoryName: "Generative AI", question: "In Generative AI, what is the term for a scenario where an LLM generates factually false statements with high confidence?", options: ["Overfitting", "Gradient Leakage", "Hallucination", "Quantization"], answer: 2, analysis: "Hallucination occurs when an LLM invents facts due to probabilistic text completion without source truth.", mnemonic: "Hallucination = Realistic dream without grounding." },
+      { id: 82, category: "AI_TECH", categoryName: "Prompt Engineering", question: "Which prompting technique instructs an AI model to break down its reasoning step-by-step before answering?", options: ["Zero-Shot Prompting", "Chain-of-Thought (CoT)", "Negative Sampling", "Pruning"], answer: 1, analysis: "Chain-of-Thought (CoT) prompting enables LLMs to perform intermediate reasoning steps before arriving at answers.", mnemonic: "CoT = 'Chain of Thought link-by-link'." },
+      { id: 83, category: "AI_TECH", categoryName: "AI Architecture", question: "What numerical vector format is used in semantic search to represent text in multi-dimensional space?", options: ["Embeddings", "Tokens", "Hash Tables", "Bytecode"], answer: 0, analysis: "Vector embeddings represent text as float arrays where semantically similar items cluster closely.", mnemonic: "Embeddings = Semantic coordinates on a map." },
+      { id: 84, category: "AI_TECH", categoryName: "Developer Tools", question: "Which Git command is used to move modified files from the working directory into the staging area?", options: ["git push", "git fetch", "git add", "git checkout"], answer: 2, analysis: "'git add <file>' prepares files in the staging index ready for the next commit snapshot.", mnemonic: "git add stages items for the commit." },
+      { id: 85, category: "AI_TECH", categoryName: "LLM Architecture", question: "In Generative AI pipelines, what does 'RAG' stand for?", options: ["Recursive Audio Generation", "Retrieval-Augmented Generation", "Random Array Grading", "Residual Attention Gradient"], answer: 1, analysis: "Retrieval-Augmented Generation (RAG) fetches private documents before feeding them to an LLM context window.", mnemonic: "RAG = Retrieve real data + Generate answers." },
+      { id: 86, category: "AI_TECH", categoryName: "Model Parameters", question: "What temperature setting in an LLM produces the most deterministic, reproducible, and factual answers?", options: ["Temperature = 0.0", "Temperature = 0.7", "Temperature = 1.2", "Temperature = 2.0"], answer: 0, analysis: "A temperature of 0.0 makes model sampling greedy, choosing only the highest-probability next token.", mnemonic: "Zero Temp = Zero Randomness." },
+      { id: 87, category: "AI_TECH", categoryName: "LLM Tokens", question: "Roughly how many English words does a typical LLM token represent?", options: ["10 words", "0.75 words (~4 characters)", "5 words", "1 sentence"], answer: 1, analysis: "In standard tokenizers (BPE / SentencePiece), 1 token equals approximately 0.75 words or 4 characters.", mnemonic: "100 tokens ≈ 75 English words." },
+      { id: 88, category: "AI_TECH", categoryName: "Prompting Methods", question: "Providing an LLM with 2 or 3 completed examples inside the prompt before asking for a new output is called what?", options: ["Zero-Shot Prompting", "Few-Shot Prompting", "Self-Consistency", "Fine-Tuning"], answer: 1, analysis: "Few-shot prompting supplies example input-output pairs inside the prompt context to guide format and behavior.", mnemonic: "Few-Shot = 2-3 examples in prompt." },
+      { id: 89, category: "AI_TECH", categoryName: "Vector Databases", question: "Which of the following is a purpose-built vector database commonly used in enterprise RAG systems?", options: ["ChromaDB / Pinecone", "SQLite", "Redis (default key-value)", "Apache Kafka"], answer: 0, analysis: "Pinecone, ChromaDB, Weaviate, and Milvus are vector databases designed for fast approximate nearest neighbor (ANN) search.", mnemonic: "Pinecone & Chroma = Vector DB storage." },
+      { id: 90, category: "AI_TECH", categoryName: "Transformer Architecture", question: "What core mechanism in the 2017 paper 'Attention Is All You Need' allowed Transformers to process all tokens in parallel?", options: ["Recurrent Feedback Loops", "Self-Attention Mechanism", "Convolutional Kernels", "Gradient Descent"], answer: 1, analysis: "Self-attention enables models to dynamically weigh relationships between all tokens across a sentence simultaneously.", mnemonic: "Self-Attention = Parallel contextual weighting." },
+      { id: 91, category: "AI_TECH", categoryName: "AI Agents", question: "What capability allows an LLM agent to call external APIs, calculate equations, or query a database dynamically?", options: ["Token Pruning", "Tool / Function Calling", "Backpropagation", "Quantization"], answer: 1, analysis: "Tool / Function calling allows models to output structured arguments that applications execute to return real-world data.", mnemonic: "Function Calling = LLM tools execution." },
+      { id: 92, category: "AI_TECH", categoryName: "Model Training", question: "What technique aligns raw pre-trained LLMs with human preferences to reduce toxicity and enhance helpfulness?", options: ["RLHF (Reinforcement Learning from Human Feedback)", "K-Means Clustering", "PCA", "Linear Regression"], answer: 0, analysis: "RLHF trains reward models on human comparison data to steer model outputs toward helpful and safe responses.", mnemonic: "RLHF = Human Feedback Alignment." },
+      { id: 93, category: "AI_TECH", categoryName: "Model Compression", question: "What optimization process reduces LLM weights from 16-bit floating points to 8-bit or 4-bit integers to run on local laptops?", options: ["Embedding", "Quantization", "Tokenization", "Reranking"], answer: 1, analysis: "Quantization (e.g., GGUF, AWQ, 4-bit) shrinks model size and RAM requirements with minimal accuracy loss.", mnemonic: "Quantization = Compressing model weights." },
+      { id: 94, category: "AI_TECH", categoryName: "Prompting Frameworks", question: "In the RTCC prompt engineering framework, what does the letter 'C' at the end typically stand for?", options: ["Computation", "Constraints (what not to do)", "Compilation", "Cache"], answer: 1, analysis: "RTCC stands for Role, Task, Context, and Constraints (rules, length limits, forbidden phrases).", mnemonic: "Constraints = Rules and boundaries." },
+      { id: 95, category: "AI_TECH", categoryName: "Vector Search", question: "Which metric is most commonly used to measure angular similarity between two vector embeddings?", options: ["Manhattan Distance", "Cosine Similarity", "Hamming Distance", "Jaccard Index"], answer: 1, analysis: "Cosine similarity measures the cosine of the angle between two multi-dimensional vectors, ranging from -1 to 1.", mnemonic: "Cosine Similarity = Angle between embeddings." },
+      { id: 96, category: "AI_TECH", categoryName: "Context Windows", question: "What does the 'Context Window' of an LLM define?", options: ["Maximum tokens processed across input and output in one request", "The speed of GPU memory clock", "The number of GPUs in a server cluster", "The browser screen width"], answer: 0, analysis: "The context window (e.g., 32k, 128k, 1M+ tokens) specifies the total token capacity of input prompt plus output generation.", mnemonic: "Context Window = Memory span per prompt." },
+      { id: 97, category: "AI_TECH", categoryName: "Fine-Tuning", question: "Which Parameter-Efficient Fine-Tuning (PEFT) method freezes base model weights and trains small low-rank adapter matrices?", options: ["Full Fine-Tuning", "LoRA (Low-Rank Adaptation)", "Gradient Boost", "Batch Normalization"], answer: 1, analysis: "LoRA injects trainable low-rank decomposition matrices, reducing fine-tuning VRAM requirements by over 80%.", mnemonic: "LoRA = Low-Rank Adapter fine-tuning." },
+      { id: 98, category: "AI_TECH", categoryName: "AI Security", question: "What attack involves crafting malicious user prompts that trick an LLM into bypassing its system safety guardrails?", options: ["Prompt Injection / Jailbreaking", "Buffer Overflow", "SQL Injection", "ARP Poisoning"], answer: 0, analysis: "Prompt injection manipulates the model into ignoring developer system instructions.", mnemonic: "Jailbreaking = Bypassing AI safety prompts." },
+      { id: 99, category: "AI_TECH", categoryName: "RAG Pipelines", question: "In RAG pipelines, what step breaks large PDF documents into smaller 500-token sections before embedding generation?", options: ["Chunking", "Quantization", "Token Dropping", "Zero-Shot"], answer: 0, analysis: "Chunking divides long texts into manageable semantic pieces with optional overlap to retain context.", mnemonic: "Chunking = Slicing text into sections." },
+      { id: 100, category: "AI_TECH", categoryName: "Evaluation", question: "What metric measures the degree of uncertainty or surprise an LLM has when predicting the next token?", options: ["Perplexity", "Accuracy score", "Latency", "Throughput"], answer: 0, analysis: "Lower perplexity indicates the language model predicts sample text with higher confidence.", mnemonic: "Perplexity = Model uncertainty metric." },
+      { id: 101, category: "AI_TECH", categoryName: "Model Sampling", question: "What sampling parameter restricts next-token selection to the smallest set whose cumulative probability reaches threshold P?", options: ["Top-K", "Top-P (Nucleus Sampling)", "Temperature", "Frequency Penalty"], answer: 1, analysis: "Top-P (Nucleus Sampling) dynamically truncates token candidates based on accumulated probability.", mnemonic: "Top-P = Nucleus cumulative probability." },
+      { id: 102, category: "AI_TECH", categoryName: "Model Sampling", question: "What parameter limits next-token candidates strictly to the top K most probable words?", options: ["Top-K Sampling", "Top-P Sampling", "Presence Penalty", "Beam Search"], answer: 0, analysis: "Top-K sorts all candidate tokens and discards everything outside the top K rank.", mnemonic: "Top-K = Top K candidates only." },
+      { id: 103, category: "AI_TECH", categoryName: "AI Frameworks", question: "Which open-source Python framework is famous for chaining LLMs, vector stores, and prompt templates into workflows?", options: ["LangChain", "NumPy", "Django", "Flask"], answer: 0, analysis: "LangChain (and LlamaIndex) provides composable abstractions to construct LLM agent pipelines and RAG systems.", mnemonic: "LangChain = Chaining LLM components." },
+      { id: 104, category: "AI_TECH", categoryName: "Multimodal AI", question: "What is an AI model called that can process and understand text, images, audio, and video simultaneously?", options: ["Unimodal Model", "Multimodal Model", "Monolithic Model", "Linear Model"], answer: 1, analysis: "Multimodal models (like Google Gemini) are natively trained across multiple modalities.", mnemonic: "Multimodal = Text + Image + Audio + Video." },
+      { id: 105, category: "AI_TECH", categoryName: "Developer Tools", question: "In Python, which lightweight framework is widely used to build quick interactive web UI demos for AI applications?", options: ["Streamlit", "TensorFlow", "Pandas", "Scikit-Learn"], answer: 0, analysis: "Streamlit enables developers to build data and AI prototype interfaces in pure Python in minutes.", mnemonic: "Streamlit = Fast Python AI web interfaces." },
+      { id: 106, category: "AI_TECH", categoryName: "Model Architecture", question: "In transformer attention mechanisms, what are the three vectors computed for each input token?", options: ["Query, Key, and Value (Q, K, V)", "Input, Hidden, Output", "Alpha, Beta, Gamma", "Weight, Bias, Error"], answer: 0, analysis: "Self-attention computes Query (Q), Key (K), and Value (V) projections to evaluate dynamic context.", mnemonic: "Q, K, V = Query, Key, Value vectors." },
+      { id: 107, category: "AI_TECH", categoryName: "Open Source AI", question: "Which platform acts as the global 'GitHub of Machine Learning' hosting thousands of open-source models and datasets?", options: ["Hugging Face", "Bitbucket", "SourceForge", "CodePen"], answer: 0, analysis: "Hugging Face is the premier hub for downloading, sharing, and running open-source models (Transformers).", mnemonic: "Hugging Face = Open-source AI model hub." },
+      { id: 108, category: "AI_TECH", categoryName: "Local LLMs", question: "Which open-source CLI tool allows developers to download and run models like Llama 3 or Mistral locally on a laptop?", options: ["Ollama", "Docker Compose", "Kubernetes", "Postman"], answer: 0, analysis: "Ollama bundles model weights and llama.cpp runtimes to serve local LLMs via simple commands like 'ollama run'.", mnemonic: "Ollama = Run LLMs on local hardware." },
+      { id: 109, category: "AI_TECH", categoryName: "Agent Workflows", question: "In autonomous AI agent architectures, what does the ReAct framework stand for?", options: ["Reasoning + Acting", "Recursive Attention", "Reactive Action", "Reflective Activation"], answer: 0, analysis: "ReAct prompts LLMs to generate reasoning traces ('Thoughts') and task-specific actions ('Action') iteratively.", mnemonic: "ReAct = Reason + Act loop." },
+      { id: 110, category: "AI_TECH", categoryName: "RAG Optimization", question: "In advanced RAG, what component scores and re-orders the top retrieved documents to improve answer relevance?", options: ["Reranker (Cross-Encoder)", "Tokenizer", "Quantizer", "Embedder"], answer: 0, analysis: "A Reranker evaluates retrieved text chunks in pairs against the user query to pass only top-scoring text to the LLM.", mnemonic: "Reranker = Re-orders retrieved chunks for accuracy." },
+      { id: 111, category: "AI_TECH", categoryName: "Prompting Methods", question: "What technique asks an LLM to generate multiple distinct reasoning paths and select the most consistent majority answer?", options: ["Self-Consistency Sampling", "Greedy Decoding", "Zero-Shot", "Gradient Pruning"], answer: 0, analysis: "Self-consistency samples several chain-of-thought solutions and selects the most frequent answer.", mnemonic: "Self-Consistency = Majority vote across reasoning paths." },
+      { id: 112, category: "AI_TECH", categoryName: "System Prompts", question: "Where are core rules, tone constraints, and role instructions established in modern chat completions APIs?", options: ["User Message", "System Prompt / Developer Instructions", "Assistant Message", "Tool Call"], answer: 1, analysis: "The System Prompt sets foundational directives and behavioral guardrails that govern the session.", mnemonic: "System Prompt = Master instructions." },
+      { id: 113, category: "AI_TECH", categoryName: "Developer Tools", question: "Which Git command creates and switches into a brand new development branch simultaneously?", options: ["git checkout -b <name>", "git branch -d <name>", "git merge <name>", "git pull"], answer: 0, analysis: "'git checkout -b <name>' (or 'git switch -c <name>') creates a new branch and checks it out immediately.", mnemonic: "checkout -b = Branch & switch." },
+      { id: 114, category: "AI_TECH", categoryName: "AI Hardware", question: "What specialized Google hardware processors are purpose-built for accelerating large-scale AI matrix multiplications?", options: ["TPU (Tensor Processing Unit)", "CPU", "APU", "FPGA"], answer: 0, analysis: "Google TPUs are custom ASICs optimized specifically for high-throughput tensor operations in machine learning.", mnemonic: "TPU = Tensor Processing Unit." },
+      { id: 115, category: "AI_TECH", categoryName: "Tokenizer Algorithms", question: "Which subword tokenization algorithm is widely used in modern LLMs like GPT and Llama?", options: ["Byte-Pair Encoding (BPE)", "Huffman Coding", "LZW Compression", "ASCII Encoding"], answer: 0, analysis: "BPE iteratively merges the most frequent pairs of bytes or characters into subword vocabularies.", mnemonic: "BPE = Byte-Pair Encoding." },
+      { id: 116, category: "AI_TECH", categoryName: "AI Ethics & Safety", question: "What term describes the undesirable tendency of an AI model to replicate historical societal prejudices present in its training data?", options: ["Algorithmic Bias", "Quantization Noise", "Token Exhaustion", "Gradient Drift"], answer: 0, analysis: "Algorithmic bias occurs when training distributions reproduce and amplify demographic inequities.", mnemonic: "Algorithmic Bias = Training data prejudices." },
+      { id: 117, category: "AI_TECH", categoryName: "AI Image Generation", question: "What deep learning generative architecture works by iteratively removing noise from random Gaussian distributions?", options: ["Diffusion Models", "Recurrent Neural Networks", "Decision Trees", "K-Nearest Neighbors"], answer: 0, analysis: "Diffusion models (Stable Diffusion, Midjourney) generate images via reverse diffusion denoising steps.", mnemonic: "Diffusion = Denoising Gaussian noise into images." },
+      { id: 118, category: "AI_TECH", categoryName: "Containerization", question: "Which software tool packages an AI application with all its libraries and Python dependencies into an isolated container?", options: ["Docker", "Git", "Nginx", "Jenkins"], answer: 0, analysis: "Docker builds portable container images ensuring applications run consistently across developer laptops and cloud servers.", mnemonic: "Docker = Standardized application containers." },
+      { id: 119, category: "AI_TECH", categoryName: "Model Fine-Tuning", question: "What is catastrophic forgetting in neural network fine-tuning?", options: ["When a model forgets previously learned tasks while being trained on a new specific task", "When GPU memory overflows", "When tokens exceed context limits", "When training loss reaches zero"], answer: 0, analysis: "Catastrophic forgetting occurs when new weight updates overwrite neural pathways responsible for prior knowledge.", mnemonic: "Catastrophic Forgetting = New task erases old skills." },
+      { id: 120, category: "AI_TECH", categoryName: "Model Inference", question: "What does TTFT stand for when benchmarking the responsiveness of Generative AI streaming APIs?", options: ["Time to First Token", "Total Token Finish Time", "Throughput Tensor File Transfer", "Token Translation Frequency"], answer: 0, analysis: "TTFT (Time to First Token) measures the latency between user query submission and the arrival of the first streamed token.", mnemonic: "TTFT = Time To First Token." },
+
+      // 4. WEB DEVELOPMENT (121-160)
+      { id: 121, category: "WEB_DEV", categoryName: "HTML Basics", question: "What does HTML stand for?", options: ["Hyper Tool Markup Language", "Hyper Text Markup Language", "Home Tool Markup Language", "Hyperlinks Text Management Language"], answer: 1, analysis: "HTML stands for Hyper Text Markup Language, providing semantic document structures.", mnemonic: "HyperText = Interconnected web pages." },
+      { id: 122, category: "WEB_DEV", categoryName: "JavaScript Essentials", question: "Which JavaScript keyword declares a block-scoped variable that can be reassigned?", options: ["let", "const", "var", "static"], answer: 0, analysis: "'let' enforces block scoping while allowing reassignment. 'const' blocks reassignment.", mnemonic: "Let = Reassignable within block." },
+      { id: 123, category: "WEB_DEV", categoryName: "CSS Basics", question: "Which CSS property is standard for changing the text color of a paragraph?", options: ["font-color", "text-color", "color", "background-color"], answer: 2, analysis: "In CSS, 'color' sets foreground text typography, while 'background-color' sets the container surface.", mnemonic: "'color' applies ink to text." },
+      { id: 124, category: "WEB_DEV", categoryName: "HTML5 Layout", question: "Which HTML tag is used to write an embedded internal stylesheet inside a web page?", options: ["&lt;css&gt;", "&lt;script&gt;", "&lt;style&gt;", "&lt;link&gt;"], answer: 2, analysis: "The <style> tag embeds internal CSS rules inside an HTML document head.", mnemonic: "<style> = Embedded CSS rules." },
+      { id: 125, category: "WEB_DEV", categoryName: "Asynchronous JavaScript", question: "What does the 'await' keyword do when placed before a Promise in JavaScript?", options: ["Cancels the function execution after 5s", "Pauses async function execution until the promise settles", "Forces an immediate page refresh", "Converts the promise into an alert dialog"], answer: 1, analysis: "'await' pauses async execution in a non-blocking manner until the Promise returns its resolved value.", mnemonic: "Await = Non-blocking pause for Promise result." },
+      { id: 126, category: "WEB_DEV", categoryName: "CSS Flexbox", question: "In CSS Flexbox, which property aligns items along the primary main axis?", options: ["align-items", "justify-content", "flex-wrap", "align-content"], answer: 1, analysis: "'justify-content' aligns items along the main axis; 'align-items' controls the cross axis.", mnemonic: "Justify = Main-axis; Align = Cross-axis." },
+      { id: 127, category: "WEB_DEV", categoryName: "CSS Box Model", question: "What CSS Box Model layer sits directly between an element's content and its border?", options: ["Margin", "Padding", "Outline", "Clip-path"], answer: 1, analysis: "The Box Model consists of Content -> Padding -> Border -> Margin.", mnemonic: "Padding is inside the border; Margin is outside." },
+      { id: 128, category: "WEB_DEV", categoryName: "CSS Box Model", question: "Which CSS property causes width and height to include content, padding, and borders together?", options: ["box-sizing: border-box;", "box-sizing: content-box;", "display: block;", "overflow: auto;"], answer: 0, analysis: "'box-sizing: border-box' ensures padding and border widths do not expand an element's specified width.", mnemonic: "border-box = Fixed predictable widths." },
+      { id: 129, category: "WEB_DEV", categoryName: "DOM Manipulation", question: "Which JavaScript method selects the first element matching a given CSS selector in the DOM?", options: ["document.getElementById", "document.querySelector", "document.getElementsByTagName", "document.find"], answer: 1, analysis: "'document.querySelector()' returns the first element matching any CSS selector query.", mnemonic: "querySelector = Powerful CSS selector search." },
+      { id: 130, category: "WEB_DEV", categoryName: "JavaScript Data Types", question: "What will 'typeof null' evaluate to in JavaScript due to a legacy implementation quirk?", options: ["'null'", "'object'", "'undefined'", "'boolean'"], answer: 1, analysis: "In JavaScript, typeof null === 'object', a legacy quirk preserved for backward compatibility.", mnemonic: "typeof null = 'object' (legacy quirk)." },
+      { id: 131, category: "WEB_DEV", categoryName: "JavaScript Operators", question: "What is the key difference between strict equality (===) and abstract equality (==) in JavaScript?", options: ["=== compares values without performing automatic type coercion", "== checks memory addresses strictly", "=== only works on numbers", "There is no difference"], answer: 0, analysis: "Strict equality === checks both type and value without performing implicit type coercion.", mnemonic: "=== = Value AND Type match." },
+      { id: 132, category: "WEB_DEV", categoryName: "HTTP Methods", question: "Which standard HTTP request method is used to submit data to be processed and create a new resource on a server?", options: ["GET", "POST", "HEAD", "OPTIONS"], answer: 1, analysis: "POST transmits data inside the request body to create or process resources on the server.", mnemonic: "POST = Creates new resource." },
+      { id: 133, category: "WEB_DEV", categoryName: "HTTP Status Codes", question: "What HTTP response status code signifies that a requested resource was successfully found and loaded?", options: ["200 OK", "301 Moved", "404 Not Found", "500 Internal Error"], answer: 0, analysis: "HTTP 200 OK indicates the request succeeded and the server returned the requested payload.", mnemonic: "200 = Success OK." },
+      { id: 134, category: "WEB_DEV", categoryName: "HTTP Status Codes", question: "What HTTP status code indicates that the server cannot find the requested resource?", options: ["401", "403", "404 Not Found", "502"], answer: 2, analysis: "HTTP 404 indicates the requested URL could not be located on the server.", mnemonic: "404 = Not Found." },
+      { id: 135, category: "WEB_DEV", categoryName: "Web Storage", question: "What is the key difference between localStorage and sessionStorage in browsers?", options: ["localStorage persists even after the browser is closed; sessionStorage clears when tab closes", "localStorage only holds 100 bytes", "sessionStorage persists forever", "localStorage encrypts data automatically"], answer: 0, analysis: "localStorage persists permanently until cleared by the user; sessionStorage expires upon tab closure.", mnemonic: "local = Permanent; session = Cleared on tab close." },
+      { id: 136, category: "WEB_DEV", categoryName: "CSS Grid", question: "Which CSS Grid property creates responsive auto-fitting columns that resize without media queries?", options: ["grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));", "display: inline-block;", "float: left;", "position: absolute;"], answer: 0, analysis: "repeat(auto-fit, minmax(min, 1fr)) creates flexible grids that collapse columns responsively.", mnemonic: "auto-fit + minmax = Responsive grid without media queries." },
+      { id: 137, category: "WEB_DEV", categoryName: "HTML5 Semantics", question: "Which semantic HTML5 tag should be used to enclose major independent standalone article or blog content?", options: ["&lt;div&gt;", "&lt;article&gt;", "&lt;span&gt;", "&lt;aside&gt;"], answer: 1, analysis: "<article> designates self-contained compositions intended to be independently distributable.", mnemonic: "<article> = Standalone content unit." },
+      { id: 138, category: "WEB_DEV", categoryName: "JavaScript Arrays", question: "Which JavaScript array method creates a brand-new array populated with results of calling a function on every element?", options: ["forEach()", "map()", "filter()", "reduce()"], answer: 1, analysis: "map() transforms every element and returns a new array of identical length without modifying original data.", mnemonic: "map() = Transforms and returns new array." },
+      { id: 139, category: "WEB_DEV", categoryName: "JavaScript Arrays", question: "Which JavaScript array method tests elements against a condition and returns a new array with only passing elements?", options: ["filter()", "map()", "slice()", "push()"], answer: 0, analysis: "filter() returns elements for which the callback returns true.", mnemonic: "filter() = Selects matching items." },
+      { id: 140, category: "WEB_DEV", categoryName: "JavaScript Closures", question: "What is a closure in JavaScript?", options: ["A function bundled together with references to its surrounding lexical environment", "A method that stops browser execution", "An HTML tag that must be self-closing", "A syntax error in loops"], answer: 0, analysis: "A closure gives an inner function access to an outer function's scope even after the outer function finishes executing.", mnemonic: "Closure = Function + Lexical Scope memory." },
+      { id: 141, category: "WEB_DEV", categoryName: "Asynchronous JS", question: "What browser API is the modern native replacement for legacy XMLHttpRequest when making HTTP requests?", options: ["fetch()", "ajax()", "axios()", "http.get()"], answer: 0, analysis: "fetch() provides a Promise-based interface for fetching network resources natively in modern browsers.", mnemonic: "fetch() = Native Promise-based HTTP." },
+      { id: 142, category: "WEB_DEV", categoryName: "JSON Format", question: "What does JSON stand for in web development?", options: ["Java Source Object Network", "JavaScript Object Notation", "Justified Standard Output Node", "Joint System Operating Namespace"], answer: 1, analysis: "JSON (JavaScript Object Notation) is a lightweight text format for structured data serialization.", mnemonic: "JSON = JavaScript Object Notation." },
+      { id: 143, category: "WEB_DEV", categoryName: "JSON Manipulation", question: "Which JavaScript method converts a JavaScript object into a JSON-formatted string?", options: ["JSON.parse()", "JSON.stringify()", "JSON.object()", "JSON.encode()"], answer: 1, analysis: "JSON.stringify() serializes objects into JSON strings; JSON.parse() deserializes JSON strings back into objects.", mnemonic: "stringify = Object to String; parse = String to Object." },
+      { id: 144, category: "WEB_DEV", categoryName: "Event Handling", question: "What method prevents the browser's default behavior during an event (e.g., stopping form reload)?", options: ["e.stopPropagation()", "e.preventDefault()", "e.stop()", "e.cancel()"], answer: 1, analysis: "e.preventDefault() cancels default browser actions like form submissions or link navigations.", mnemonic: "preventDefault = Stops default browser reload." },
+      { id: 145, category: "WEB_DEV", categoryName: "Event Handling", question: "What method stops a click event from bubbling up the parent DOM tree?", options: ["e.stopPropagation()", "e.preventDefault()", "e.detach()", "e.terminate()"], answer: 0, analysis: "e.stopPropagation() halts event bubbling up ancestral DOM nodes.", mnemonic: "stopPropagation = Halts event bubbling." },
+      { id: 146, category: "WEB_DEV", categoryName: "CSS Selectors", question: "In CSS, what symbol prefix is used to target an HTML element by its class attribute?", options: ["# (hash)", ". (dot)", "* (asterisk)", "@ (at)"], answer: 1, analysis: "A dot targets classes (e.g., .quiz-card), while # targets element IDs (e.g., #quiz-box).", mnemonic: ".dot for class; #hash for ID." },
+      { id: 147, category: "WEB_DEV", categoryName: "Responsive Design", question: "What HTML tag in document head configures responsive scaling on mobile phone screens?", options: ["&lt;meta name='viewport' content='width=device-width, initial-scale=1.0'&gt;", "&lt;meta charset='UTF-8'&gt;", "&lt;meta name='robots' content='index'&gt;", "&lt;meta http-equiv='refresh'&gt;"], answer: 0, analysis: "The viewport meta tag matches page width to device screen width and configures initial zoom scales.", mnemonic: "viewport meta = Mobile responsive scaling." },
+      { id: 148, category: "WEB_DEV", categoryName: "CSS Variables", question: "How are custom CSS variables accessed and applied in modern stylesheets?", options: ["$variable", "var(--variable-name)", "const(variable)", "@variable"], answer: 1, analysis: "Custom properties defined with --name are retrieved using var(--name).", mnemonic: "var(--property) = CSS Variable access." },
+      { id: 149, category: "WEB_DEV", categoryName: "JavaScript ES6", question: "What syntax allows unpacking values from arrays or properties from objects into distinct variables?", options: ["Destructuring assignment", "Spread operator", "Rest parameter", "Binding"], answer: 0, analysis: "Destructuring (e.g., const { name, age } = user) extracts properties into local variables cleanly.", mnemonic: "Destructuring = Unpacking objects/arrays." },
+      { id: 150, category: "WEB_DEV", categoryName: "JavaScript ES6", question: "What is the output of [...'hello'] in modern JavaScript using the spread operator?", options: ["['hello']", "['h', 'e', 'l', 'l', 'o']", "SyntaxError", "undefined"], answer: 1, analysis: "The spread operator spreads iterable strings into individual character elements inside arrays.", mnemonic: "[...'abc'] = ['a', 'b', 'c']." },
+      { id: 151, category: "WEB_DEV", categoryName: "HTML5 Media", question: "Which HTML5 attribute allows audio or video tags to play automatically as soon as loaded?", options: ["controls", "autoplay", "loop", "preload"], answer: 1, analysis: "autoplay requests immediate playback upon media buffer availability.", mnemonic: "autoplay = Immediate playback." },
+      { id: 152, category: "WEB_DEV", categoryName: "JavaScript DOM", question: "Which property is safest for inserting user-supplied plain text into a DOM element to prevent XSS attacks?", options: ["innerHTML", "textContent", "outerHTML", "document.write()"], answer: 1, analysis: "textContent inserts strings as raw text without HTML parsing, defeating XSS injections.", mnemonic: "textContent = Safe from XSS injection." },
+      { id: 153, category: "WEB_DEV", categoryName: "Performance", question: "What HTML attribute on an img tag delays image loading until it nears the user's viewport?", options: ["loading='lazy'", "defer", "async", "preload='none'"], answer: 0, analysis: "loading='lazy' instructs browsers to defer image downloads until scrolling nearby, saving mobile data.", mnemonic: "loading='lazy' = Defers offscreen images." },
+      { id: 154, category: "WEB_DEV", categoryName: "Script Loading", question: "What attribute downloads an external script asynchronously and executes it immediately without blocking HTML parsing?", options: ["defer", "async", "type='module'", "inline"], answer: 1, analysis: "async downloads scripts asynchronously and runs immediately when ready.", mnemonic: "async = Runs immediately upon download." },
+      { id: 155, category: "WEB_DEV", categoryName: "Web Security", question: "What browser security mechanism restricts resources on one origin from making read requests to another origin?", options: ["Same-Origin Policy (SOP) & CORS", "DNSSEC", "SSL Handshake", "TCP Checksum"], answer: 0, analysis: "SOP blocks cross-origin reading unless explicitly permitted by server CORS headers.", mnemonic: "CORS = Cross-Origin Resource Sharing control." },
+      { id: 156, category: "WEB_DEV", categoryName: "CSS Transitions", question: "Which CSS property smoothly animates style changes between states over a specified duration?", options: ["transition", "transform", "keyframes", "will-change"], answer: 0, analysis: "transition: all 0.3s ease creates smooth visual interpolations when hover or active classes toggle.", mnemonic: "transition = Smooth property animation." },
+      { id: 157, category: "WEB_DEV", categoryName: "JavaScript Runtime", question: "In browser JavaScript, what coordinate schedule monitors the Callback Queue and pushes tasks to Call Stack?", options: ["Event Loop", "Garbage Collector", "JIT Compiler", "AST Parser"], answer: 0, analysis: "The Event Loop checks if the Call Stack is clear before moving queued tasks to execution.", mnemonic: "Event Loop = Asynchronous task scheduler." },
+      { id: 158, category: "WEB_DEV", categoryName: "PWA Features", question: "In Progressive Web Apps (PWAs), what script runs in the background to handle caching and offline access?", options: ["Web Worker", "Service Worker", "Background Fetch API", "IndexedDB Worker"], answer: 1, analysis: "Service Workers act as client-side network proxies intercepting requests and serving cached assets offline.", mnemonic: "Service Worker = PWA offline proxy." },
+      { id: 159, category: "WEB_DEV", categoryName: "Modern CSS", question: "Which CSS pseudo-class matches an element when it is clicked or actively engaged by user input?", options: [":hover", ":active", ":focus", ":visited"], answer: 1, analysis: ":active triggers during the click or tap interaction on buttons and anchors.", mnemonic: ":active = Pressed state." },
+      { id: 160, category: "WEB_DEV", categoryName: "Version Control", question: "Which Git command downloads commits from a remote repository and merges them into the current local branch?", options: ["git pull", "git fetch", "git push", "git clone"], answer: 0, analysis: "git pull performs a git fetch followed by an automatic git merge of upstream changes.", mnemonic: "git pull = Fetch + Merge remote changes." }
+    ];
+
+    let currentFilter = 'ALL';
+    let filteredQuestions = [...masterBank];
+    let currentIndex = 0;
+    let score = 0;
+    let timerInterval = null;
+    let baseTime = 20;
+    let timeLeft = 20;
+    let totalTimeTaken = 0;
+    let hasUsed5050 = false;
+
+    function get(id) { return document.getElementById(id); }
+
+    function updateCategoryPills() {
+      get("count-all").textContent = masterBank.length;
+      get("count-comp").textContent = masterBank.filter(q => q.category === 'COMPETITIVE').length;
+      get("count-cyber").textContent = masterBank.filter(q => q.category === 'CYBER_SEC').length;
+      get("count-ai").textContent = masterBank.filter(q => q.category === 'AI_TECH').length;
+      get("count-web").textContent = masterBank.filter(q => q.category === 'WEB_DEV').length;
+    }
+
+    function switchCategory(cat) {
+      playSound("click");
+      currentFilter = cat;
+      baseTime = 20;
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("onclick").includes(cat));
+      });
+
+      if (cat === 'ALL') {
+        filteredQuestions = [...masterBank];
+      } else {
+        filteredQuestions = masterBank.filter(q => q.category === cat);
+      }
+
+      restartQuiz();
+    }
+
+    // Custom Mock Test Builder Engine
+    function openMockBuilderModal() {
+      playSound("click");
+      get("mock-builder-modal").style.display = "flex";
+    }
+
+    function closeMockBuilderModal() {
+      get("mock-builder-modal").style.display = "none";
+    }
+
+    function startCustomMockTest() {
+      const selectedCategories = [];
+      if (get("check-comp").checked) selectedCategories.push("COMPETITIVE");
+      if (get("check-cyber").checked) selectedCategories.push("CYBER_SEC");
+      if (get("check-ai").checked) selectedCategories.push("AI_TECH");
+      if (get("check-web").checked) selectedCategories.push("WEB_DEV");
+
+      if (selectedCategories.length === 0) {
+        alert("Please select at least one track to include in your mock test.");
+        return;
+      }
+
+      const qCount = parseInt(get("mock-count").value, 10);
+      baseTime = parseInt(get("mock-timer").value, 10);
+
+      // Filter and randomize
+      const pool = masterBank.filter(q => selectedCategories.includes(q.category));
+      pool.sort(() => Math.random() - 0.5);
+      filteredQuestions = pool.slice(0, Math.min(qCount, pool.length));
+
+      // Remove tab highlights
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+
+      closeMockBuilderModal();
+      restartQuiz();
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      if (baseTime === 0) {
+        get("timer-badge").style.display = "none";
+        return;
+      }
+
+      get("timer-badge").style.display = "flex";
+      timeLeft = baseTime;
+      updateTimerBadge();
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        totalTimeTaken++;
+        updateTimerBadge();
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          handleTimeout();
+        }
+      }, 1000);
+    }
+
+    function updateTimerBadge() {
+      const badge = get("timer-badge");
+      const num = get("timer-number");
+      num.textContent = timeLeft + "s";
+
+      badge.classList.remove("warning", "danger");
+      if (timeLeft <= 5) {
+        badge.classList.add("danger");
+      } else if (timeLeft <= 10) {
+        badge.classList.add("warning");
+      }
+    }
+
+    function updateProgressFill() {
+      const pct = (currentIndex / filteredQuestions.length) * 100;
+      get("session-progress").style.width = pct + "%";
+    }
+
+    function loadQuestion() {
+      clearInterval(timerInterval);
+      get("next-btn").style.display = "none";
+      get("ai-copilot").style.display = "none";
+      document.getElementById("doubt-response").style.display = "none";
+      document.getElementById("doubt-query").value = "";
+      
+      const grid = get("options-grid");
+      grid.innerHTML = "";
+
+      const q = filteredQuestions[currentIndex];
+      get("module-pill").textContent = q.categoryName;
+      get("progress-info").textContent = "Question " + (currentIndex + 1) + " of " + filteredQuestions.length;
+      get("question-title").textContent = q.question;
+
+      // Update Star Icon
+      const isStarred = bookmarks.some(b => b.id === q.id);
+      get("btn-star").classList.toggle("active", isStarred);
+
+      // Reset 50:50 Lifeline
+      get("lifeline-5050").disabled = hasUsed5050;
+
+      const keys = ['A', 'B', 'C', 'D'];
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "option-card";
+        btn.id = "opt-" + idx;
+        btn.innerHTML = "<span class='option-key'>" + keys[idx] + "</span> <span>" + opt + "</span>";
+        btn.addEventListener("click", () => handleSelectOption(idx));
+        grid.appendChild(btn);
+      });
+
+      updateProgressFill();
+      startTimer();
+    }
+
+    function use5050Lifeline() {
+      if (hasUsed5050) return;
+      hasUsed5050 = true;
+      get("lifeline-5050").disabled = true;
+      playSound("click");
+
+      const q = filteredQuestions[currentIndex];
+      const incorrectIndices = [0, 1, 2, 3].filter(idx => idx !== q.answer);
+      incorrectIndices.sort(() => Math.random() - 0.5);
+      const toEliminate = incorrectIndices.slice(0, 2);
+
+      toEliminate.forEach(idx => {
+        const btn = get("opt-" + idx);
+        if (btn) btn.classList.add("eliminated");
+      });
+    }
+
+    function handleSelectOption(selectedIndex) {
+      clearInterval(timerInterval);
+      const q = filteredQuestions[currentIndex];
+      const buttons = get("options-grid").querySelectorAll(".option-card");
+
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === q.answer) {
+          btn.classList.add("correct");
+        } else if (idx === selectedIndex) {
+          btn.classList.add("incorrect");
+        }
+      });
+
+      if (selectedIndex === q.answer) {
+        score++;
+        addXP(20);
+        playSound("correct");
+      } else {
+        saveMistake(q);
+        playSound("wrong");
+      }
+
+      get("ai-analysis").textContent = q.analysis;
+      get("ai-mnemonic").textContent = q.mnemonic;
+      get("ai-copilot").style.display = "block";
+      get("next-btn").style.display = "block";
+    }
+
+    function handleTimeout() {
+      const q = filteredQuestions[currentIndex];
+      const buttons = get("options-grid").querySelectorAll(".option-card");
+
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === q.answer) {
+          btn.classList.add("correct");
+        }
+      });
+
+      saveMistake(q);
+      playSound("wrong");
+
+      get("ai-analysis").textContent = "[Time Expired] " + q.analysis;
+      get("ai-mnemonic").textContent = q.mnemonic;
+      get("ai-copilot").style.display = "block";
+      get("next-btn").style.display = "block";
+    }
+
+    function nextQuestion() {
+      playSound("click");
+      currentIndex++;
+      if (currentIndex < filteredQuestions.length) {
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      clearInterval(timerInterval);
+      get("quiz-box").style.display = "none";
+      get("result-box").style.display = "block";
+      get("session-progress").style.width = "100%";
+
+      const totalQs = filteredQuestions.length;
+      get("final-score").textContent = score + " / " + totalQs;
+
+      // Accuracy & Speed Analytics
+      const accuracy = Math.round((score / totalQs) * 100);
+      const avgSpeed = (totalTimeTaken / totalQs).toFixed(1);
+
+      get("stat-accuracy").textContent = accuracy + "%";
+      get("stat-speed").textContent = avgSpeed + "s";
+
+      if (accuracy >= 80) {
+        get("feedback-headline").textContent = "🏆 Outstanding Performance! High speed & exam mastery.";
+      } else if (accuracy >= 50) {
+        get("feedback-headline").textContent = "👍 Solid foundation! Review missed questions in your Revision Notebook.";
+      } else {
+        get("feedback-headline").textContent = "📚 Needs focus. Re-read explanations and retry the section.";
+      }
+    }
+
+    function restartQuiz() {
+      playSound("click");
+      currentIndex = 0;
+      score = 0;
+      totalTimeTaken = 0;
+      hasUsed5050 = false;
+      get("result-box").style.display = "none";
+      get("quiz-box").style.display = "block";
+      loadQuestion();
+    }
+
+    // Initialize application state
+    updateGamificationDisplay();
+    updateCategoryPills();
+    loadQuestion();
+  </script>
+</body>
+</html>
